@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { useFinance } from "./hooks/useFinance";
 
+// Onboarding
+import OnboardingWizard, {
+  type OnboardingResult,
+} from "./components/onboarding/OnboardingWizard";
+
 // Layout
 import { AppHeader } from "./components/layout/AppHeader";
 import { TabBar } from "./components/layout/TabBar";
@@ -9,9 +14,8 @@ import { TabBar } from "./components/layout/TabBar";
 import { Confetti, CheckMark } from "./components/ui/ThemedComponents";
 
 // Tabs
-import { HistoryTab } from "./components/dashboard/HistoryTab";
-import { FutureTab } from "./components/dashboard/Futuretab";
 import { OverviewTab } from "./components/dashboard/OverviewTab";
+import { HistoryTab } from "./components/dashboard/HistoryTab";
 import { DebtsTab } from "./components/dashboard/DebtsTab";
 import { ImpulseTab } from "./components/dashboard/ImpulseTab";
 
@@ -21,12 +25,16 @@ import {
   AddDebtModal,
   DepositModal,
 } from "./components/modals";
-
-//Constants
 import { USER_INIT } from "./constants/userInit";
 import { FONT } from "./constants/styles";
+import { FutureTab } from "./components/dashboard/Futuretab";
 
 export default function App() {
+  const [onboarded, setOnboarded] = useState(false);
+  const [onboardingData, setOnboardingData] = useState<OnboardingResult | null>(
+    null,
+  );
+
   const f = useFinance();
   const { T, tc } = f;
 
@@ -34,6 +42,20 @@ export default function App() {
   const [showDebtModal, setShowDebtModal] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
 
+  /* ─── Onboarding Complete Handler ─── */
+  const handleOnboardingComplete = (result: OnboardingResult) => {
+    setOnboardingData(result);
+    setOnboarded(true);
+    // TODO: In future, pass result to useFinance to initialize with user data
+    // e.g. f.initializeFromOnboarding(result)
+  };
+
+  /* ─── Show Onboarding if not completed ─── */
+  if (!onboarded) {
+    return <OnboardingWizard onComplete={handleOnboardingComplete} />;
+  }
+
+  /* ─── Dashboard ─── */
   const tabs = [
     { id: "overview", label: "İcmal" },
     { id: "history", label: "Tarixçə" },
@@ -66,7 +88,7 @@ export default function App() {
         extraIncome={f.extraIncome}
         month={USER_INIT.month}
         streak={USER_INIT.streak}
-        avatarEmoji={USER_INIT.avatar.emoji}
+        avatarEmoji={onboardingData?.avatar.emoji || USER_INIT.avatar.emoji}
       />
 
       <TabBar
@@ -82,7 +104,7 @@ export default function App() {
             T={T}
             tc={tc}
             f={f}
-            salary={USER_INIT.salary}
+            salary={onboardingData?.salary || USER_INIT.salary}
             onDeposit={() => setShowDepositModal(true)}
             onAddExpense={() => setShowAddModal(true)}
           />
