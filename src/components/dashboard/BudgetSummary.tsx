@@ -1,6 +1,6 @@
 import { MONO } from "../../constants/styles";
 import { USER_INIT } from "../../constants/userInit";
-import { type Theme, type TypeColors } from "../../types/finance";
+import { type Theme, type TypeColors } from "../../models";
 import { Card, Btn, Progress } from "../ui/ThemedComponents";
 
 interface Props {

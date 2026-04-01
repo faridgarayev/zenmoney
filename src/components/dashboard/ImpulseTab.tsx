@@ -1,5 +1,5 @@
 import { FONT } from "../../constants/styles";
-import { type Theme, type ImpulseItem } from "../../types/finance";
+import { type Theme, type ImpulseItem } from "../../models";
 import { Card, Btn } from "../ui/ThemedComponents";
 import { ImpTimer } from "./DebtManager";
 

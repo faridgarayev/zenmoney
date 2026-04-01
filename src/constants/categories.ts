@@ -1,4 +1,4 @@
-import type { Category } from "../types/finance";
+import type { Category } from "../models";
 
 export const DEFAULT_CATEGORIES: Category[] = [
   { id: "housing", emoji: "🏠", label: "Yaşayış & Ev", type: "need" },

@@ -3,7 +3,7 @@ import {
   type Theme,
   type TypeColors,
   type Category,
-} from "../../types/finance";
+} from "../../models";
 import { FONT, MONO } from "../../constants/styles";
 import { MOODS } from "../../constants/mood";
 import { EMOJI_PICKER } from "../../constants/emojies";

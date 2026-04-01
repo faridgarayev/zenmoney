@@ -1,4 +1,4 @@
-import { type Theme } from "../../types/finance";
+import { type Theme } from "../../models";
 import { Badge } from "../ui/ThemedComponents";
 
 interface Props {

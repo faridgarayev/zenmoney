@@ -1,5 +1,5 @@
 import { FONT } from "../../constants/styles";
-import { type Theme } from "../../types/finance";
+import { type Theme } from "../../models";
 
 /* ═══ Modal Overlay Wrapper ═══ */
 export function ModalWrap({

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { type Theme, type TypeColors } from "../../types/finance";
+import { type Theme, type TypeColors } from "../../models";
 import { MONO } from "../../constants/styles";
 import { Btn } from "../ui/ThemedComponents";
 import { ModalWrap, ModalHeader, getInputStyle } from "../ui/ModalShell";

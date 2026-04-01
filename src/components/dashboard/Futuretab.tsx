@@ -2,7 +2,7 @@ import {
   type Theme,
   type TypeColors,
   type FinancialGoal,
-} from "../../types/finance";
+} from "../../models";
 import { Card } from "../ui/ThemedComponents";
 import { FutureSim, GoalsList, AddGoalForm } from "./FutureMe";
 

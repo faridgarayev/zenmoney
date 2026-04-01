@@ -3,7 +3,7 @@ import {
   type Theme,
   type TypeColors,
   type FinancialGoal,
-} from "../../types/finance";
+} from "../../models";
 import { Card, Btn, Progress } from "../ui/ThemedComponents";
 import { FONT, MONO, typeColorsFor } from "../../constants/styles";
 import { goalCalc } from "../../utils/goalTimeCalculator";

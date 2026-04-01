@@ -5,7 +5,7 @@ import {
   type TypeColors,
   type Expense,
   type Category,
-} from "../../types/finance";
+} from "../../models";
 import { Card, Btn, Badge } from "../ui/ThemedComponents";
 
 interface Props {

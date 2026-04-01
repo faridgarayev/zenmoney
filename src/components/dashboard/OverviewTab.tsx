@@ -5,7 +5,7 @@ import {
   type Expense,
   type Debt,
   type Category,
-} from "../../types/finance";
+} from "../../models";
 import { Card, Fact } from "../ui/ThemedComponents";
 import { BudgetSummary } from "./BudgetSummary";
 import { ExpenseTable } from "./ExpenseTable";

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { type Theme } from "../../types/finance";
+import { type Theme } from "../../models";
 import { FONT, MONO } from "../../constants/styles";
 
 /* ═══ Confetti Animation ═══ */

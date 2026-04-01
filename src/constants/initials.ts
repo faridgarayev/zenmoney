@@ -1,4 +1,4 @@
-import type { Debt, Expense, FinancialGoal } from "../types/finance";
+import type { Debt, Expense, FinancialGoal } from "../models";
 
 export const INITIAL_EXPENSES: Expense[] = [
   {

@@ -4,7 +4,7 @@ import {
   type TypeColors,
   type Debt,
   type ImpulseItem,
-} from "../../types/finance";
+} from "../../models";
 import { Card, Btn, Badge, Progress, Fact } from "../ui/ThemedComponents";
 import { MONO } from "../../constants/styles";
 

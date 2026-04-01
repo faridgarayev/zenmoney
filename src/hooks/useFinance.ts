@@ -9,7 +9,7 @@ import {
   type MonthComputed,
   type Theme,
   type TypeColors,
-} from "../types/finance";
+} from "../models";
 import { themes } from "../constants/themes";
 import { injectGlobalStyles, typeColorsFor } from "../constants/styles";
 import { DEFAULT_CATEGORIES } from "../constants/categories";

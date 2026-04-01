@@ -1,4 +1,4 @@
-import type { Mood } from "../types/finance";
+import type { Mood } from "../models";
 
 export const MOODS: Mood[] = [
   { emoji: "😊", label: "Xoşbəxt", key: "happy" },

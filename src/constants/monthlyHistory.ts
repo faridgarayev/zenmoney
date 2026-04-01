@@ -1,4 +1,4 @@
-import type { MonthHistory } from "../types/finance";
+import type { MonthHistory } from "../models";
 
 export const MONTHLY_HISTORY: MonthHistory[] = [
   {

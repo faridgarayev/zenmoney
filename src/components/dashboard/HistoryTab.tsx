@@ -4,7 +4,7 @@ import {
   type TypeColors,
   type Category,
   type MonthComputed,
-} from "../../types/finance";
+} from "../../models";
 import { Card, Fact } from "../ui/ThemedComponents";
 
 interface Props {

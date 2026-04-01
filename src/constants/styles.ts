@@ -1,4 +1,4 @@
-import type { TypeColors } from "../types/finance";
+import type { TypeColors } from "../models";
 
 export const typeColorsFor = (mode: "dark" | "light"): TypeColors =>
   mode === "dark"

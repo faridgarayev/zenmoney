@@ -1,4 +1,4 @@
-import type { Theme } from "../types/finance";
+import type { Theme } from "../models";
 
 export const themes: { light: Theme; dark: Theme } = {
   light: {

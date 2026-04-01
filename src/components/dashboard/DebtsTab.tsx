@@ -1,4 +1,4 @@
-import { type Theme, type TypeColors, type Debt } from "../../types/finance";
+import { type Theme, type TypeColors, type Debt } from "../../models";
 import { DebtTable, DebtSummary } from "./DebtManager";
 
 interface Props {
