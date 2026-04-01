@@ -102,3 +102,10 @@ export interface TypeColors {
   want: string;
   future: string;
 }
+
+export interface IOnboardingResult {
+  salary: number;
+  avatar: { id: string; emoji: string; name: string };
+  split: { need: number; want: number; future: number };
+  expenses: { id: string; amount: number }[];
+}

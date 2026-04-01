@@ -1,75 +1,21 @@
 import { useState, useEffect } from "react";
-import { type Theme, type TypeColors } from "../../models";
+import {
+  type IOnboardingResult,
+  type Theme,
+  type TypeColors,
+} from "../../models";
 import { Btn } from "../ui/ThemedComponents";
 import { Confetti } from "../ui/ThemedComponents";
 import { themes } from "../../constants/themes";
 import { FONT, MONO, typeColorsFor } from "../../constants/styles";
-
-/* ─── Constants ─── */
-const STEPS = [
-  { id: "welcome", label: "Başla" },
-  { id: "salary", label: "Gəlir" },
-  { id: "expenses", label: "Xərclər" },
-  { id: "avatar", label: "Avatar" },
-  { id: "split", label: "Bölgü" },
-  { id: "summary", label: "Hazır!" },
-];
-
-const AVATARS = [
-  { id: "zen", emoji: "🧘", name: "Zen Master", desc: "Sakit, balansı sevən" },
-  {
-    id: "rocket",
-    emoji: "🚀",
-    name: "Rocket Saver",
-    desc: "Hədəfə fokuslanmış",
-  },
-  { id: "owl", emoji: "🦉", name: "Wise Owl", desc: "Ağıllı qərarlar verən" },
-  {
-    id: "lion",
-    emoji: "🦁",
-    name: "Bold Lion",
-    desc: "Cəsarətlə investisiya edən",
-  },
-];
-
-const EXPENSE_PRESETS = [
-  { id: "rent", label: "Kirayə / İpoteka", emoji: "🏠", category: "need" },
-  { id: "food", label: "Qida / Market", emoji: "🛒", category: "need" },
-  { id: "transport", label: "Nəqliyyat", emoji: "🚌", category: "need" },
-  { id: "utilities", label: "Kommunal", emoji: "💡", category: "need" },
-  { id: "phone", label: "Telefon / İnternet", emoji: "📱", category: "need" },
-  {
-    id: "netflix",
-    label: "Netflix / Streaming",
-    emoji: "🎬",
-    category: "want",
-  },
-  { id: "cafe", label: "Kafe / Restoran", emoji: "☕", category: "want" },
-  {
-    id: "shopping",
-    label: "Geyim / Alış-veriş",
-    emoji: "🛍️",
-    category: "want",
-  },
-  { id: "gym", label: "İdman zalı", emoji: "💪", category: "want" },
-  { id: "hobby", label: "Hobbi", emoji: "🎨", category: "want" },
-];
-
-/* ─── Types ─── */
-export interface OnboardingResult {
-  salary: number;
-  avatar: { id: string; emoji: string; name: string };
-  split: { need: number; want: number; future: number };
-  expenses: { id: string; amount: number }[];
-}
+import { STEPS } from "../../constants/steps";
+import { AVATARS } from "../../constants/avatars";
+import { EXPENSE_PRESETS } from "../../constants/expensePresets";
 
 interface Props {
-  onComplete: (result: OnboardingResult) => void;
+  onComplete: (result: IOnboardingResult) => void;
 }
 
-/* ═══════════════════════════════════════════════════════════
-   Onboarding Wizard — Themed Edition
-   ═══════════════════════════════════════════════════════════ */
 export default function OnboardingWizard({ onComplete }: Props) {
   const T: Theme = themes.dark;
   const tc: TypeColors = typeColorsFor("dark");
