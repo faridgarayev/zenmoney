@@ -18,6 +18,7 @@ import { OverviewTab } from "./components/dashboard/OverviewTab";
 import { HistoryTab } from "./components/dashboard/HistoryTab";
 import { DebtsTab } from "./components/dashboard/DebtsTab";
 import { ImpulseTab } from "./components/dashboard/ImpulseTab";
+import { FutureTab } from "./components/dashboard/Futuretab";
 
 // Modals
 import {
@@ -25,9 +26,10 @@ import {
   AddDebtModal,
   DepositModal,
 } from "./components/modals";
+
+// Constants
 import { USER_INIT } from "./constants/userInit";
 import { FONT } from "./constants/styles";
-import { FutureTab } from "./components/dashboard/Futuretab";
 
 export default function App() {
   const [onboarded, setOnboarded] = useState(false);
@@ -42,20 +44,15 @@ export default function App() {
   const [showDebtModal, setShowDebtModal] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
 
-  /* ─── Onboarding Complete Handler ─── */
   const handleOnboardingComplete = (result: OnboardingResult) => {
     setOnboardingData(result);
     setOnboarded(true);
-    // TODO: In future, pass result to useFinance to initialize with user data
-    // e.g. f.initializeFromOnboarding(result)
   };
 
-  /* ─── Show Onboarding if not completed ─── */
   if (!onboarded) {
     return <OnboardingWizard onComplete={handleOnboardingComplete} />;
   }
 
-  /* ─── Dashboard ─── */
   const tabs = [
     { id: "overview", label: "İcmal" },
     { id: "history", label: "Tarixçə" },
