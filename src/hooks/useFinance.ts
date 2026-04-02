@@ -11,11 +11,17 @@ import {
   type TypeColors,
 } from "../models";
 import { themes } from "../constants/themes";
-import { injectGlobalStyles, typeColorsFor } from "../constants/styles";
-import { USER_INIT } from "../constants/userInit";
 import { DEFAULT_CATEGORIES } from "../constants/categories";
-import { MONTHLY_HISTORY } from "../constants/monthlyHistory";
-import { getCurrentMonthName, getCurrentYear, getCurrentMonthLabel, getMonthKey, getExpenseMonthKey } from "../utils/getMonths";
+import { typeColorsFor, injectGlobalStyles } from "../constants/styles";
+import { USER_INIT } from "../constants/userInit";
+import {
+  getCurrentMonthName,
+  getCurrentYear,
+  getCurrentMonthLabel,
+  getMonthKey,
+  getExpenseMonthKey,
+  AZ_MONTHS,
+} from "../utils/getMonths";
 
 /* ─── Onboarding result type (must match OnboardingWizard export) ─── */
 export interface OnboardingData {
@@ -162,112 +168,85 @@ export function useFinance() {
   const recurringExpenses = currentMonthExpenses.filter((e) => e.recurring);
   const recurringTotal = recurringExpenses.reduce((s, e) => s + e.amount, 0);
 
-  // ─── History: group all expenses by month, merge with MONTHLY_HISTORY ───
+  // ─── History: group ALL expenses by month ───
   const allMonths: MonthComputed[] = useMemo(() => {
-    // Group non-current-month expenses into archived months
-    const archivedByKey: Record<
+    const monthMap: Record<
       string,
       {
         month: string;
         year: number;
         income: number;
-        expenses: { category: string; amount: number }[];
+        catAmounts: Record<string, number>;
       }
     > = {};
 
+    // Group every expense by its month key
     expenses.forEach((e) => {
       const mk = getExpenseMonthKey(e.date);
-      if (mk === currentMonthKey) return; // current month handled separately
-
-      if (!archivedByKey[mk]) {
-        // Parse month/year from key "YYYY-MM"
+      if (!monthMap[mk]) {
         const [y, m] = mk.split("-").map(Number);
-        const AZ_MONTHS = [
-          "Yanvar",
-          "Fevral",
-          "Mart",
-          "Aprel",
-          "May",
-          "İyun",
-          "İyul",
-          "Avqust",
-          "Sentyabr",
-          "Oktyabr",
-          "Noyabr",
-          "Dekabr",
-        ];
-        archivedByKey[mk] = {
+        monthMap[mk] = {
           month: AZ_MONTHS[m - 1],
           year: y,
           income: salary,
-          expenses: [],
+          catAmounts: {},
         };
       }
-
-      const cat = categories.find((c) => c.id === e.category);
-      if (!cat) return;
-
-      const existing = archivedByKey[mk].expenses.find(
-        (ex) => ex.category === e.category,
-      );
-      if (existing) existing.amount += e.amount;
-      else
-        archivedByKey[mk].expenses.push({
-          category: e.category,
-          amount: e.amount,
-        });
+      const entry = monthMap[mk];
+      entry.catAmounts[e.category] =
+        (entry.catAmounts[e.category] || 0) + e.amount;
     });
 
-    // Current month from current expenses
-    const cur = {
-      month: currentMonthName,
-      year: currentYear,
-      income: totalIncome,
-      expenses: categories
-        .map((cat) => {
-          const t = currentMonthExpenses
-            .filter((e) => e.category === cat.id)
-            .reduce((s, e) => s + e.amount, 0);
-          return t > 0 ? { category: cat.id, amount: t } : null;
-        })
-        .filter(Boolean) as { category: string; amount: number }[],
-    };
+    // Ensure current month always exists even if no expenses yet
+    if (!monthMap[currentMonthKey]) {
+      monthMap[currentMonthKey] = {
+        month: currentMonthName,
+        year: currentYear,
+        income: totalIncome,
+        catAmounts: {},
+      };
+    } else {
+      monthMap[currentMonthKey].income = totalIncome; // current month uses dynamic income
+    }
 
-    // Merge: MONTHLY_HISTORY (seed) + archived from expenses + current
-    const allRaw = [
-      ...MONTHLY_HISTORY,
-      ...Object.values(archivedByKey).sort((a, b) => {
-        const ka = `${a.year}-${a.month}`,
-          kb = `${b.year}-${b.month}`;
-        return ka.localeCompare(kb);
-      }),
-      cur,
-    ];
-
-    return allRaw.map((m) => {
-      const need = m.expenses
-        .filter((e) => {
-          const c = categories.find((cc) => cc.id === e.category);
-          return c?.type === "need";
-        })
-        .reduce((s, e) => s + e.amount, 0);
-      const want = m.expenses
-        .filter((e) => {
-          const c = categories.find((cc) => cc.id === e.category);
-          return c?.type === "want";
-        })
-        .reduce((s, e) => s + e.amount, 0);
-      const future = m.expenses
-        .filter((e) => {
-          const c = categories.find((cc) => cc.id === e.category);
-          return c?.type === "future";
-        })
-        .reduce((s, e) => s + e.amount, 0);
-      return { ...m, need, want, future, total: need + want + future };
-    });
+    // Sort by key and compute need/want/future
+    return Object.entries(monthMap)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([, m]) => {
+        const expArr = Object.entries(m.catAmounts).map(
+          ([category, amount]) => ({ category, amount }),
+        );
+        const need = expArr
+          .filter((e) => {
+            const c = categories.find((cc) => cc.id === e.category);
+            return c?.type === "need";
+          })
+          .reduce((s, e) => s + e.amount, 0);
+        const want = expArr
+          .filter((e) => {
+            const c = categories.find((cc) => cc.id === e.category);
+            return c?.type === "want";
+          })
+          .reduce((s, e) => s + e.amount, 0);
+        const future = expArr
+          .filter((e) => {
+            const c = categories.find((cc) => cc.id === e.category);
+            return c?.type === "future";
+          })
+          .reduce((s, e) => s + e.amount, 0);
+        return {
+          month: m.month,
+          year: m.year,
+          income: m.income,
+          expenses: expArr,
+          need,
+          want,
+          future,
+          total: need + want + future,
+        };
+      });
   }, [
     expenses,
-    currentMonthExpenses,
     categories,
     totalIncome,
     salary,
