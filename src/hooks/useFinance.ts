@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import {
   type Expense,
   type Debt,
@@ -12,10 +12,32 @@ import {
 } from "../models";
 import { themes } from "../constants/themes";
 import { injectGlobalStyles, typeColorsFor } from "../constants/styles";
-import { DEFAULT_CATEGORIES } from "../constants/categories";
-import { INITIAL_DEBTS, INITIAL_EXPENSES, INITIAL_GOALS } from "../constants/initials";
 import { USER_INIT } from "../constants/userInit";
+import { DEFAULT_CATEGORIES } from "../constants/categories";
+import { INITIAL_DEBTS, INITIAL_GOALS } from "../constants/initials";
 import { MONTHLY_HISTORY } from "../constants/monthlyHistory";
+
+/* ─── Onboarding result type (must match OnboardingWizard export) ─── */
+export interface OnboardingData {
+  salary: number;
+  avatar: { id: string; emoji: string; name: string };
+  split: { need: number; want: number; future: number };
+  expenses: { id: string; amount: number }[];
+}
+
+/* ─── Map onboarding expense presets to category IDs ─── */
+const PRESET_TO_CATEGORY: Record<string, string> = {
+  rent: "housing",
+  food: "food",
+  transport: "transport",
+  utilities: "housing",
+  phone: "housing",
+  netflix: "entertainment",
+  cafe: "entertainment",
+  shopping: "clothing",
+  gym: "hobby",
+  hobby: "hobby",
+};
 
 export function useFinance() {
   // ─── Theme ───
@@ -23,9 +45,15 @@ export function useFinance() {
   const T: Theme = dark ? themes.dark : themes.light;
   const tc: TypeColors = typeColorsFor(dark ? "dark" : "light");
 
+  // ─── User Profile (dynamic — set by onboarding) ───
+  const [salary, setSalary] = useState(USER_INIT.salary);
+  const [splitConfig, setSplitConfig] = useState(USER_INIT.split);
+  const [avatarEmoji, setAvatarEmoji] = useState(USER_INIT.avatar.emoji);
+  const [avatarName, setAvatarName] = useState(USER_INIT.avatar.name);
+
   // ─── Core State ───
   const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
-  const [expenses, setExpenses] = useState<Expense[]>(INITIAL_EXPENSES);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [debts, setDebts] = useState<Debt[]>(INITIAL_DEBTS);
   const [extraBudget, setExtraBudget] = useState<ExtraBudget>({
     balance: 0,
@@ -49,20 +77,52 @@ export function useFinance() {
     injectGlobalStyles();
   }, []);
 
-  // ─── Budget Calculations ───
+  // ═══════════════════════════════════════════════════
+  // ─── Initialize from Onboarding ───
+  // ═══════════════════════════════════════════════════
+  const initFromOnboarding = useCallback((data: OnboardingData) => {
+    // 1. Set salary
+    setSalary(data.salary);
+
+    // 2. Set split percentages
+    setSplitConfig(data.split);
+    setSimPct(data.split.future);
+
+    // 3. Set avatar
+    setAvatarEmoji(data.avatar.emoji);
+    setAvatarName(data.avatar.name);
+
+    // 4. Convert onboarding expenses to recurring Expense entries
+    const today = new Date().toLocaleDateString("az-AZ");
+    const newExpenses: Expense[] = data.expenses
+      .filter((e) => e.amount > 0)
+      .map((e, i) => ({
+        id: Date.now() + i,
+        amount: e.amount,
+        category: PRESET_TO_CATEGORY[e.id] || "housing",
+        mood: "happy",
+        date: today,
+        note: getExpenseLabel(e.id),
+        recurring: true, // onboarding expenses are recurring by default
+      }));
+
+    setExpenses(newExpenses);
+  }, []);
+
+  // ─── Budget Calculations (now using dynamic salary & split) ───
   const extraIncome =
     extraBudget.balance +
     extraBudget.need +
     extraBudget.want +
     extraBudget.future;
-  const totalIncome = USER_INIT.salary + extraIncome;
+  const totalIncome = salary + extraIncome;
   const needBudget =
-    Math.round((USER_INIT.salary * USER_INIT.split.need) / 100) +
-    Math.round((extraBudget.balance * USER_INIT.split.need) / 100) +
+    Math.round((salary * splitConfig.need) / 100) +
+    Math.round((extraBudget.balance * splitConfig.need) / 100) +
     extraBudget.need;
   const wantBudget =
-    Math.round((USER_INIT.salary * USER_INIT.split.want) / 100) +
-    Math.round((extraBudget.balance * USER_INIT.split.want) / 100) +
+    Math.round((salary * splitConfig.want) / 100) +
+    Math.round((extraBudget.balance * splitConfig.want) / 100) +
     extraBudget.want;
   const futureBudget = totalIncome - needBudget - wantBudget;
 
@@ -263,6 +323,11 @@ export function useFinance() {
     setDark,
     T,
     tc,
+    // User profile (dynamic)
+    salary,
+    splitConfig,
+    avatarEmoji,
+    avatarName,
     // Data
     categories,
     expenses,
@@ -296,6 +361,7 @@ export function useFinance() {
     setConfetti,
     checkMark,
     // Actions
+    initFromOnboarding,
     setSimPct,
     addCategory,
     handleDeposit,
@@ -310,4 +376,21 @@ export function useFinance() {
     cancelImpulse,
     confirmImpulse,
   };
+}
+
+/* ─── Helper: Map preset ID to readable label ─── */
+function getExpenseLabel(presetId: string): string {
+  const labels: Record<string, string> = {
+    rent: "Kirayə / İpoteka",
+    food: "Qida / Market",
+    transport: "Nəqliyyat",
+    utilities: "Kommunal",
+    phone: "Telefon / İnternet",
+    netflix: "Netflix / Streaming",
+    cafe: "Kafe / Restoran",
+    shopping: "Geyim / Alış-veriş",
+    gym: "İdman zalı",
+    hobby: "Hobbi",
+  };
+  return labels[presetId] || presetId;
 }

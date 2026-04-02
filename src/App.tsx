@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { useFinance } from "./hooks/useFinance";
 
+// Constants
+import { USER_INIT } from "./constants/userInit";
+import { FONT } from "./constants/styles";
+
 // Onboarding
 import OnboardingWizard from "./components/onboarding/OnboardingWizard";
 import type { IOnboardingResult } from "./models";
@@ -26,15 +30,9 @@ import {
   DepositModal,
 } from "./components/modals";
 
-// Constants
-import { USER_INIT } from "./constants/userInit";
-import { FONT } from "./constants/styles";
 
 export default function App() {
   const [onboarded, setOnboarded] = useState(false);
-  const [onboardingData, setOnboardingData] =
-    useState<IOnboardingResult | null>(null);
-
   const f = useFinance();
   const { T, tc } = f;
 
@@ -42,8 +40,9 @@ export default function App() {
   const [showDebtModal, setShowDebtModal] = useState(false);
   const [showDepositModal, setShowDepositModal] = useState(false);
 
+  /* ─── Onboarding → Dashboard ─── */
   const handleOnboardingComplete = (result: IOnboardingResult) => {
-    setOnboardingData(result);
+    f.initFromOnboarding(result);
     setOnboarded(true);
   };
 
@@ -51,6 +50,7 @@ export default function App() {
     return <OnboardingWizard onComplete={handleOnboardingComplete} />;
   }
 
+  /* ─── Dashboard ─── */
   const tabs = [
     { id: "overview", label: "İcmal" },
     { id: "history", label: "Tarixçə" },
@@ -83,7 +83,7 @@ export default function App() {
         extraIncome={f.extraIncome}
         month={USER_INIT.month}
         streak={USER_INIT.streak}
-        avatarEmoji={onboardingData?.avatar.emoji || USER_INIT.avatar.emoji}
+        avatarEmoji={f.avatarEmoji}
       />
 
       <TabBar
@@ -99,7 +99,7 @@ export default function App() {
             T={T}
             tc={tc}
             f={f}
-            salary={onboardingData?.salary || USER_INIT.salary}
+            salary={f.salary}
             onDeposit={() => setShowDepositModal(true)}
             onAddExpense={() => setShowAddModal(true)}
           />

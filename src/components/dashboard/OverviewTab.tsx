@@ -32,6 +32,7 @@ interface Props {
     showCatAll: boolean;
     setShowCatAll: (v: boolean) => void;
     toggleRecurring: (id: number) => void;
+    splitConfig: { need: number; want: number; future: number };
   };
   salary: number;
   onDeposit: () => void;
@@ -60,6 +61,7 @@ export function OverviewTab({
           totalSpent={f.totalSpent}
           totalIncome={f.totalIncome}
           dailyLeft={f.dailyLeft}
+          splitConfig={f.splitConfig}
           onDeposit={onDeposit}
         />
         <ExpenseTable

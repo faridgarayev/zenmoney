@@ -1,5 +1,4 @@
 import { MONO } from "../../constants/styles";
-import { USER_INIT } from "../../constants/userInit";
 import { type Theme, type TypeColors } from "../../models";
 import { Card, Btn, Progress } from "../ui/ThemedComponents";
 
@@ -13,6 +12,7 @@ interface Props {
   totalSpent: number;
   totalIncome: number;
   dailyLeft: number;
+  splitConfig: { need: number; want: number; future: number };
   onDeposit: () => void;
 }
 
@@ -26,6 +26,7 @@ export function BudgetSummary({
   totalSpent,
   totalIncome,
   dailyLeft,
+  splitConfig,
   onDeposit,
 }: Props) {
   const kpis = [
@@ -60,21 +61,21 @@ export function BudgetSummary({
 
   const rows = [
     {
-      label: `Zəruri (${USER_INIT.split.need}%)`,
+      label: `Zəruri (${splitConfig.need}%)`,
       spent: spent.need,
       budget: needBudget,
       color: tc.need,
       allowOver: false,
     },
     {
-      label: `İstəklər (${USER_INIT.split.want}%)`,
+      label: `İstəklər (${splitConfig.want}%)`,
       spent: spent.want,
       budget: wantBudget,
       color: tc.want,
       allowOver: false,
     },
     {
-      label: `Yığım (${USER_INIT.split.future}%)`,
+      label: `Yığım (${splitConfig.future}%)`,
       spent: spent.future,
       budget: futureBudget,
       color: tc.future,
