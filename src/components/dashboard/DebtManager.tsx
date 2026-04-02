@@ -8,6 +8,9 @@ import {
 import { Card, Btn, Badge, Progress, Fact } from "../ui/ThemedComponents";
 import { MONO } from "../../constants/styles";
 
+const DEBT_COLS = "90px 1fr 1fr 80px 110px 80px 70px";
+
+/* ═══ Debt Table ═══ */
 export function DebtTable({
   T,
   tc,
@@ -21,24 +24,25 @@ export function DebtTable({
   onPay: (id: number) => void;
   onAddNew: () => void;
 }) {
-  const thStyle: React.CSSProperties = {
-    textAlign: "left",
-    padding: "10px 14px",
+  const headerCell: React.CSSProperties = {
+    padding: "10px 12px",
     fontSize: 11,
     fontWeight: 600,
     color: T.text3,
     textTransform: "uppercase",
-    letterSpacing: 0.6,
+    letterSpacing: 0.5,
+    whiteSpace: "nowrap",
     borderBottom: `2px solid ${T.border}`,
     background: T.tableBg,
-    transition: "all .4s ease",
   };
-  const tdStyle: React.CSSProperties = {
-    padding: "10px 14px",
+  const cell: React.CSSProperties = {
+    padding: "11px 12px",
     fontSize: 13,
-    borderBottom: `1px solid ${T.border}`,
     color: T.text1,
-    transition: "all .4s ease",
+    borderBottom: `1px solid ${T.border}`,
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
   };
 
   return (
@@ -52,82 +56,99 @@ export function DebtTable({
       T={T}
     >
       {debts.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "50px 0", color: T.text3 }}>
+        <div
+          style={{
+            textAlign: "center",
+            padding: "50px 0",
+            color: T.text3,
+            fontSize: 13,
+          }}
+        >
+          <div style={{ fontSize: 32, marginBottom: 8 }}>✅</div>
           Heç bir borc yoxdur
         </div>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th style={thStyle}>Tarix</th>
-              <th style={thStyle}>Ad</th>
-              <th style={thStyle}>Qeyd</th>
-              <th style={thStyle}>Növ</th>
-              <th style={{ ...thStyle, textAlign: "right" }}>Məbləğ</th>
-              <th style={thStyle}>Status</th>
-              <th style={thStyle}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {debts.map((d) => (
-              <tr
-                key={d.id}
+        <>
+          {/* Header */}
+          <div style={{ display: "grid", gridTemplateColumns: DEBT_COLS }}>
+            <div style={headerCell}>Tarix</div>
+            <div style={headerCell}>Ad</div>
+            <div style={headerCell}>Qeyd</div>
+            <div style={headerCell}>Növ</div>
+            <div style={{ ...headerCell, textAlign: "right" }}>Məbləğ</div>
+            <div style={headerCell}>Status</div>
+            <div style={{ ...headerCell, textAlign: "center" }}></div>
+          </div>
+
+          {/* Rows */}
+          {debts.map((d) => (
+            <div
+              key={d.id}
+              style={{
+                display: "grid",
+                gridTemplateColumns: DEBT_COLS,
+                opacity: d.paid ? 0.45 : 1,
+                transition: "all .3s",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.background = T.tableHover)
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.background = "transparent")
+              }
+            >
+              <div
                 style={{
-                  opacity: d.paid ? 0.45 : 1,
-                  transition: "opacity .4s ease",
+                  ...cell,
+                  fontFamily: MONO,
+                  fontSize: 11,
+                  color: T.text3,
                 }}
               >
-                <td
-                  style={{
-                    ...tdStyle,
-                    fontFamily: MONO,
-                    fontSize: 12,
-                    color: T.text3,
-                  }}
-                >
-                  {d.date}
-                </td>
-                <td style={{ ...tdStyle, fontWeight: 600 }}>{d.name}</td>
-                <td style={{ ...tdStyle, color: T.text2 }}>{d.note}</td>
-                <td style={tdStyle}>
-                  <Badge color={d.type === "lent" ? T.danger : tc.future} T={T}>
-                    {d.type === "lent" ? "Verdim" : "Aldım"}
+                {d.date}
+              </div>
+              <div style={{ ...cell, fontWeight: 600 }}>{d.name}</div>
+              <div style={{ ...cell, color: T.text2, fontSize: 12 }}>
+                {d.note}
+              </div>
+              <div style={cell}>
+                <Badge color={d.type === "lent" ? T.danger : tc.future} T={T}>
+                  {d.type === "lent" ? "Verdim" : "Aldım"}
+                </Badge>
+              </div>
+              <div
+                style={{
+                  ...cell,
+                  textAlign: "right",
+                  fontFamily: MONO,
+                  fontWeight: 600,
+                  color: d.type === "lent" ? T.danger : tc.future,
+                  textDecoration: d.paid ? "line-through" : "none",
+                }}
+              >
+                {d.amount.toFixed(2)} ₼
+              </div>
+              <div style={cell}>
+                {d.paid ? (
+                  <Badge color={tc.future} T={T}>
+                    Ödənib
                   </Badge>
-                </td>
-                <td
-                  style={{
-                    ...tdStyle,
-                    textAlign: "right",
-                    fontFamily: MONO,
-                    fontWeight: 600,
-                    color: d.type === "lent" ? T.danger : tc.future,
-                    textDecoration: d.paid ? "line-through" : "none",
-                  }}
-                >
-                  {d.amount.toFixed(2)} ₼
-                </td>
-                <td style={tdStyle}>
-                  {d.paid ? (
-                    <Badge color={tc.future} T={T}>
-                      Ödənib
-                    </Badge>
-                  ) : (
-                    <Badge color={T.warning} T={T}>
-                      Açıq
-                    </Badge>
-                  )}
-                </td>
-                <td style={tdStyle}>
-                  {!d.paid && (
-                    <Btn small onClick={() => onPay(d.id)} T={T}>
-                      ✓ Ödəndi
-                    </Btn>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                ) : (
+                  <Badge color={T.warning} T={T}>
+                    Açıq
+                  </Badge>
+                )}
+              </div>
+              <div style={{ ...cell, textAlign: "center" }}>
+                {!d.paid && (
+                  <Btn small onClick={() => onPay(d.id)} T={T}>
+                    ✓
+                  </Btn>
+                )}
+              </div>
+            </div>
+          ))}
+        </>
       )}
     </Card>
   );

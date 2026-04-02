@@ -17,6 +17,8 @@ interface Props {
   currentMonthName: string;
 }
 
+const TABLE_COLS = "1fr 90px 90px 90px 100px 100px";
+
 export function HistoryTab({
   T,
   tc,
@@ -26,23 +28,23 @@ export function HistoryTab({
   categories,
   currentMonthName,
 }: Props) {
-  const thStyle: React.CSSProperties = {
-    padding: "10px 14px",
+  const headerCell: React.CSSProperties = {
+    padding: "10px 12px",
     fontSize: 11,
     fontWeight: 600,
     color: T.text3,
     textTransform: "uppercase",
-    letterSpacing: 0.6,
+    letterSpacing: 0.5,
+    whiteSpace: "nowrap",
     borderBottom: `2px solid ${T.border}`,
     background: T.tableBg,
-    transition: "all .4s ease",
   };
-  const tdBase: React.CSSProperties = {
-    padding: "10px 14px",
+  const cell: React.CSSProperties = {
+    padding: "11px 12px",
     fontSize: 13,
-    borderBottom: `1px solid ${T.border}`,
     color: T.text1,
-    transition: "all .4s ease",
+    borderBottom: `1px solid ${T.border}`,
+    whiteSpace: "nowrap",
   };
 
   return (
@@ -178,106 +180,117 @@ export function HistoryTab({
           </div>
         </Card>
 
-        {/* Comparison Table */}
+        {/* Comparison Table — CSS Grid */}
         <Card title="Ay Üzrə Müqayisə" T={T}>
-          <table>
-            <thead>
-              <tr>
-                {["Dövr", "Zəruri", "İstəklər", "Yığım", "Cəmi", "Qalıq"].map(
-                  (h, i) => (
-                    <th
-                      key={h}
-                      style={{
-                        ...thStyle,
-                        textAlign:
-                          i > 0 ? ("right" as const) : ("left" as const),
-                      }}
-                    >
-                      {h}
-                    </th>
-                  ),
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {allMonths.map((m, i) => {
-                const cur = m.month === currentMonthName;
-                const rem = m.income - m.total;
-                return (
-                  <tr
-                    key={i}
-                    style={{
-                      background: cur ? T.activeBg : "transparent",
-                      cursor: "pointer",
-                    }}
-                    onClick={() => setHistoryMonth(i)}
-                  >
-                    <td
-                      style={{
-                        ...tdBase,
-                        fontWeight: cur ? 700 : 400,
-                        color: cur ? T.primary : T.text1,
-                      }}
-                    >
-                      {m.month} {m.year} {cur && "◄"}
-                    </td>
-                    <td
-                      style={{
-                        ...tdBase,
-                        textAlign: "right",
-                        fontFamily: MONO,
-                        color: tc.need,
-                      }}
-                    >
-                      {m.need.toFixed(2)}
-                    </td>
-                    <td
-                      style={{
-                        ...tdBase,
-                        textAlign: "right",
-                        fontFamily: MONO,
-                        color: tc.want,
-                      }}
-                    >
-                      {m.want.toFixed(2)}
-                    </td>
-                    <td
-                      style={{
-                        ...tdBase,
-                        textAlign: "right",
-                        fontFamily: MONO,
-                        color: tc.future,
-                      }}
-                    >
-                      {m.future.toFixed(2)}
-                    </td>
-                    <td
-                      style={{
-                        ...tdBase,
-                        textAlign: "right",
-                        fontFamily: MONO,
-                        fontWeight: 700,
-                      }}
-                    >
-                      {m.total.toFixed(2)}
-                    </td>
-                    <td
-                      style={{
-                        ...tdBase,
-                        textAlign: "right",
-                        fontFamily: MONO,
-                        fontWeight: 600,
-                        color: rem >= 0 ? tc.future : T.danger,
-                      }}
-                    >
-                      {rem >= 0 ? "+" : ""}
-                      {rem.toFixed(2)}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          {/* Header */}
+          <div style={{ display: "grid", gridTemplateColumns: TABLE_COLS }}>
+            <div style={headerCell}>Dövr</div>
+            <div style={{ ...headerCell, textAlign: "right" }}>Zəruri</div>
+            <div style={{ ...headerCell, textAlign: "right" }}>İstəklər</div>
+            <div style={{ ...headerCell, textAlign: "right" }}>Yığım</div>
+            <div style={{ ...headerCell, textAlign: "right" }}>Cəmi</div>
+            <div style={{ ...headerCell, textAlign: "right" }}>Qalıq</div>
+          </div>
+
+          {/* Rows */}
+          {allMonths.map((m, i) => {
+            const cur = m.month === currentMonthName;
+            const rem = m.income - m.total;
+            return (
+              <div
+                key={i}
+                onClick={() => setHistoryMonth(i)}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: TABLE_COLS,
+                  cursor: "pointer",
+                  background: cur ? T.activeBg : "transparent",
+                  transition: "background .2s",
+                }}
+                onMouseEnter={(e) => {
+                  if (!cur) e.currentTarget.style.background = T.tableHover;
+                }}
+                onMouseLeave={(e) => {
+                  if (!cur) e.currentTarget.style.background = "transparent";
+                }}
+              >
+                <div
+                  style={{
+                    ...cell,
+                    fontWeight: cur ? 700 : 400,
+                    color: cur ? T.primary : T.text1,
+                  }}
+                >
+                  {m.month} {m.year} {cur && "◄"}
+                </div>
+                <div
+                  style={{
+                    ...cell,
+                    textAlign: "right",
+                    fontFamily: MONO,
+                    color: tc.need,
+                  }}
+                >
+                  {m.need.toFixed(2)}
+                </div>
+                <div
+                  style={{
+                    ...cell,
+                    textAlign: "right",
+                    fontFamily: MONO,
+                    color: tc.want,
+                  }}
+                >
+                  {m.want.toFixed(2)}
+                </div>
+                <div
+                  style={{
+                    ...cell,
+                    textAlign: "right",
+                    fontFamily: MONO,
+                    color: tc.future,
+                  }}
+                >
+                  {m.future.toFixed(2)}
+                </div>
+                <div
+                  style={{
+                    ...cell,
+                    textAlign: "right",
+                    fontFamily: MONO,
+                    fontWeight: 700,
+                  }}
+                >
+                  {m.total.toFixed(2)}
+                </div>
+                <div
+                  style={{
+                    ...cell,
+                    textAlign: "right",
+                    fontFamily: MONO,
+                    fontWeight: 600,
+                    color: rem >= 0 ? tc.future : T.danger,
+                  }}
+                >
+                  {rem >= 0 ? "+" : ""}
+                  {rem.toFixed(2)}
+                </div>
+              </div>
+            );
+          })}
+
+          {allMonths.length === 0 && (
+            <div
+              style={{
+                textAlign: "center",
+                padding: "32px 0",
+                color: T.text3,
+                fontSize: 13,
+              }}
+            >
+              Tarixçə boşdur — xərc əlavə etdikdə burada görünəcək
+            </div>
+          )}
         </Card>
       </div>
 
