@@ -1,24 +1,27 @@
 import { useState, useEffect } from "react";
-import {
-  type IOnboardingResult,
-  type Theme,
-  type TypeColors,
-} from "../../models";
+import { type IOnboardingResult, type Theme, type TypeColors } from "../../models";
 import { Btn } from "../ui/ThemedComponents";
 import { Confetti } from "../ui/ThemedComponents";
+import { AppHeader } from "../layout/AppHeader";
+import { typeColorsFor, MONO, FONT } from "../../constants/styles";
 import { themes } from "../../constants/themes";
-import { FONT, MONO, typeColorsFor } from "../../constants/styles";
+import { getCurrentMonthLabel } from "../../utils/getMonths";
 import { STEPS } from "../../constants/steps";
 import { AVATARS } from "../../constants/avatars";
 import { EXPENSE_PRESETS } from "../../constants/expensePresets";
 
 interface Props {
   onComplete: (result: IOnboardingResult) => void;
+  dark: boolean;
+  setDark: (fn: (d: boolean) => boolean) => void;
 }
 
-export default function OnboardingWizard({ onComplete }: Props) {
-  const T: Theme = themes.dark;
-  const tc: TypeColors = typeColorsFor("dark");
+/* ═══════════════════════════════════════════════════════════
+   Onboarding Wizard — Themed Edition
+   ═══════════════════════════════════════════════════════════ */
+export default function OnboardingWizard({ onComplete, dark, setDark }: Props) {
+  const T: Theme = dark ? themes.dark : themes.light;
+  const tc: TypeColors = typeColorsFor(dark ? "dark" : "light");
 
   const [step, setStep] = useState(0);
   const [salary, setSalary] = useState("");
@@ -748,131 +751,119 @@ export default function OnboardingWizard({ onComplete }: Props) {
         color: T.text1,
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "24px 16px",
         position: "relative",
         overflow: "hidden",
       }}
     >
       <Confetti active={showConfetti} onDone={() => setShowConfetti(false)} />
 
-      {/* Logo */}
+      {/* ═══ Header — same as Dashboard ═══ */}
+      <AppHeader
+        T={T}
+        dark={dark}
+        setDark={setDark}
+        extraIncome={0}
+        month={getCurrentMonthLabel()}
+        streak={0}
+        avatarEmoji="💰"
+      />
+
+      {/* ═══ Content Area ═══ */}
       <div
         style={{
-          marginBottom: 28,
-          textAlign: "center",
-          animation: "zmSlideIn .6s ease both",
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "32px 16px",
         }}
       >
-        <span
-          style={{
-            fontSize: 22,
-            fontWeight: 800,
-            color: T.text1,
-            letterSpacing: -0.5,
-          }}
-        >
-          Zen<span style={{ color: T.primary }}>Money</span>
-        </span>
-      </div>
-
-      {/* Card */}
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 540,
-          background: T.cardBg,
-          border: `1px solid ${T.border}`,
-          borderRadius: 16,
-          padding: "36px 32px 28px",
-          boxShadow: T.shadowLg,
-        }}
-      >
-        {/* Progress Dots */}
+        {/* Card */}
         <div
           style={{
-            display: "flex",
-            gap: 8,
-            justifyContent: "center",
-            marginBottom: 32,
+            width: "100%",
+            maxWidth: 540,
+            background: T.cardBg,
+            border: `1px solid ${T.border}`,
+            borderRadius: 16,
+            padding: "36px 32px 28px",
+            boxShadow: T.shadowLg,
           }}
         >
-          {STEPS.map((s, i) => (
-            <div
-              key={s.id}
-              style={{
-                width: i === step ? 32 : 10,
-                height: 10,
-                borderRadius: 5,
-                background:
-                  i === step ? T.primary : i < step ? T.primary : T.border,
-                opacity: i === step ? 1 : i < step ? 0.5 : 0.3,
-                transition: "all .4s ease",
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Step Content */}
-        {stepRenderers[step]()}
-
-        {/* Navigation */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginTop: 28,
-            gap: 12,
-          }}
-        >
-          {step > 0 ? (
-            <Btn onClick={prev} T={T}>
-              ← Geri
-            </Btn>
-          ) : (
-            <div />
-          )}
-          <button
-            onClick={step === STEPS.length - 1 ? handleComplete : next}
-            disabled={!canNext()}
+          {/* Progress Dots */}
+          <div
             style={{
-              padding: "12px 32px",
-              borderRadius: 10,
-              border: "none",
-              cursor: canNext() ? "pointer" : "default",
-              fontSize: 14,
-              fontWeight: 700,
-              fontFamily: FONT,
-              letterSpacing: 0.2,
-              background: T.primary,
-              color: "#fff",
-              opacity: canNext() ? 1 : 0.35,
-              transition: "all .3s ease",
-              ...(step === STEPS.length - 1
-                ? { animation: "zmGlow 2s ease-in-out infinite" }
-                : {}),
+              display: "flex",
+              gap: 8,
+              justifyContent: "center",
+              marginBottom: 32,
             }}
           >
-            {step === 0
-              ? "Başlayaq! 🚀"
-              : step === STEPS.length - 1
-                ? "Dashboard-a keç ✨"
-                : "Davam et →"}
-          </button>
-        </div>
-      </div>
+            {STEPS.map((s, i) => (
+              <div
+                key={s.id}
+                style={{
+                  width: i === step ? 32 : 10,
+                  height: 10,
+                  borderRadius: 5,
+                  background:
+                    i === step ? T.primary : i < step ? T.primary : T.border,
+                  opacity: i === step ? 1 : i < step ? 0.5 : 0.3,
+                  transition: "all .4s ease",
+                }}
+              />
+            ))}
+          </div>
 
-      {/* Step Counter */}
-      <div
-        style={{
-          marginTop: 20,
-          fontSize: 12,
-          color: T.text3,
-          fontFamily: MONO,
-        }}
-      >
-        {step + 1} / {STEPS.length}
+          {/* Step Content */}
+          {stepRenderers[step]()}
+
+          {/* Navigation */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginTop: 28,
+              gap: 12,
+            }}
+          >
+            {step > 0 ? (
+              <Btn onClick={prev} T={T}>
+                ← Geri
+              </Btn>
+            ) : (
+              <div />
+            )}
+            <button
+              onClick={step === STEPS.length - 1 ? handleComplete : next}
+              disabled={!canNext()}
+              style={{
+                padding: "12px 32px",
+                borderRadius: 10,
+                border: "none",
+                cursor: canNext() ? "pointer" : "default",
+                fontSize: 14,
+                fontWeight: 700,
+                fontFamily: FONT,
+                letterSpacing: 0.2,
+                background: T.primary,
+                color: "#fff",
+                opacity: canNext() ? 1 : 0.35,
+                transition: "all .3s ease",
+                ...(step === STEPS.length - 1
+                  ? { animation: "zmGlow 2s ease-in-out infinite" }
+                  : {}),
+              }}
+            >
+              {step === 0
+                ? "Başlayaq! 🚀"
+                : step === STEPS.length - 1
+                  ? "Dashboard-a keç ✨"
+                  : "Davam et →"}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

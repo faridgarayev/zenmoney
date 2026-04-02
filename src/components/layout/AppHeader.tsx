@@ -62,9 +62,11 @@ export function AppHeader({
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-        <span style={{ fontSize: 12, color: T.warning, fontWeight: 600 }}>
-          🔥 {streak}
-        </span>
+        {streak > 0 && (
+          <span style={{ fontSize: 12, color: T.warning, fontWeight: 600 }}>
+            🔥 {streak}
+          </span>
+        )}
 
         <button
           onClick={() => setDark((d) => !d)}

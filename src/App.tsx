@@ -1,13 +1,8 @@
 import { useState } from "react";
 import { useFinance } from "./hooks/useFinance";
 
-// Constants
-import { USER_INIT } from "./constants/userInit";
-import { FONT } from "./constants/styles";
-
 // Onboarding
 import OnboardingWizard from "./components/onboarding/OnboardingWizard";
-import type { IOnboardingResult } from "./models";
 
 // Layout
 import { AppHeader } from "./components/layout/AppHeader";
@@ -21,7 +16,6 @@ import { OverviewTab } from "./components/dashboard/OverviewTab";
 import { HistoryTab } from "./components/dashboard/HistoryTab";
 import { DebtsTab } from "./components/dashboard/DebtsTab";
 import { ImpulseTab } from "./components/dashboard/ImpulseTab";
-import { FutureTab } from "./components/dashboard/Futuretab";
 
 // Modals
 import {
@@ -30,6 +24,11 @@ import {
   DepositModal,
 } from "./components/modals";
 
+// Constants
+import { FutureTab } from "./components/dashboard/Futuretab";
+import { FONT } from "./constants/styles";
+import { USER_INIT } from "./constants/userInit";
+import type { IOnboardingResult } from "./models";
 
 export default function App() {
   const [onboarded, setOnboarded] = useState(false);
@@ -47,7 +46,13 @@ export default function App() {
   };
 
   if (!onboarded) {
-    return <OnboardingWizard onComplete={handleOnboardingComplete} />;
+    return (
+      <OnboardingWizard
+        onComplete={handleOnboardingComplete}
+        dark={f.dark}
+        setDark={f.setDark}
+      />
+    );
   }
 
   /* ─── Dashboard ─── */
@@ -81,7 +86,7 @@ export default function App() {
         dark={f.dark}
         setDark={f.setDark}
         extraIncome={f.extraIncome}
-        month={USER_INIT.month}
+        month={f.currentMonthLabel}
         streak={USER_INIT.streak}
         avatarEmoji={f.avatarEmoji}
       />
@@ -113,6 +118,7 @@ export default function App() {
             historyMonth={f.historyMonth}
             setHistoryMonth={f.setHistoryMonth}
             categories={f.categories}
+            currentMonthName={f.currentMonthName}
           />
         )}
 

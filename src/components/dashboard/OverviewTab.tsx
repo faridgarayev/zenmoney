@@ -113,95 +113,123 @@ export function OverviewTab({
 
         {/* Borc Xülasəsi */}
         <Card title="Borc Xülasəsi" T={T}>
-          <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+          {f.debts.length === 0 ? (
             <div
               style={{
-                flex: 1,
-                padding: "12px",
-                background: `${T.danger}08`,
-                borderRadius: 10,
                 textAlign: "center",
+                padding: "24px 0",
+                color: T.text3,
+                fontSize: 13,
               }}
             >
-              <div
-                style={{
-                  fontSize: 10,
-                  color: T.text3,
-                  textTransform: "uppercase",
-                  letterSpacing: 0.5,
-                }}
-              >
-                Verdiyim
-              </div>
-              <div
-                style={{
-                  fontFamily: MONO,
-                  fontSize: 18,
-                  fontWeight: 700,
-                  color: T.danger,
-                }}
-              >
-                {f.totalDebtOut.toFixed(2)} ₼
-              </div>
+              <div style={{ fontSize: 32, marginBottom: 8 }}>✅</div>
+              Borc yoxdur
             </div>
-            <div
-              style={{
-                flex: 1,
-                padding: "12px",
-                background: `${tc.future}08`,
-                borderRadius: 10,
-                textAlign: "center",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 10,
-                  color: T.text3,
-                  textTransform: "uppercase",
-                  letterSpacing: 0.5,
-                }}
-              >
-                Aldığım
-              </div>
-              <div
-                style={{
-                  fontFamily: MONO,
-                  fontSize: 18,
-                  fontWeight: 700,
-                  color: tc.future,
-                }}
-              >
-                {f.totalDebtIn.toFixed(2)} ₼
-              </div>
-            </div>
-          </div>
-          {f.debts
-            .filter((d) => !d.paid)
-            .map((d) => (
-              <div
-                key={d.id}
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  padding: "6px 0",
-                  borderBottom: `1px solid ${T.border}`,
-                  fontSize: 12,
-                }}
-              >
-                <span style={{ color: T.text2 }}>
-                  {d.type === "lent" ? "📤" : "📥"} {d.name}
-                </span>
-                <span
+          ) : (
+            <>
+              <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
+                <div
                   style={{
-                    fontFamily: MONO,
-                    fontWeight: 600,
-                    color: d.type === "lent" ? T.danger : tc.future,
+                    flex: 1,
+                    padding: "12px",
+                    background: `${T.danger}08`,
+                    borderRadius: 10,
+                    textAlign: "center",
                   }}
                 >
-                  {d.amount} ₼
-                </span>
+                  <div
+                    style={{
+                      fontSize: 10,
+                      color: T.text3,
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    Verdiyim
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: MONO,
+                      fontSize: 18,
+                      fontWeight: 700,
+                      color: T.danger,
+                    }}
+                  >
+                    {f.totalDebtOut.toFixed(2)} ₼
+                  </div>
+                </div>
+                <div
+                  style={{
+                    flex: 1,
+                    padding: "12px",
+                    background: `${tc.future}08`,
+                    borderRadius: 10,
+                    textAlign: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: 10,
+                      color: T.text3,
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                    }}
+                  >
+                    Aldığım
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: MONO,
+                      fontSize: 18,
+                      fontWeight: 700,
+                      color: tc.future,
+                    }}
+                  >
+                    {f.totalDebtIn.toFixed(2)} ₼
+                  </div>
+                </div>
               </div>
-            ))}
+              {f.debts
+                .filter((d) => !d.paid)
+                .map((d) => (
+                  <div
+                    key={d.id}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      padding: "6px 0",
+                      borderBottom: `1px solid ${T.border}`,
+                      fontSize: 12,
+                    }}
+                  >
+                    <span style={{ color: T.text2 }}>
+                      {d.type === "lent" ? "📤" : "📥"} {d.name}
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: MONO,
+                        fontWeight: 600,
+                        color: d.type === "lent" ? T.danger : tc.future,
+                      }}
+                    >
+                      {d.amount} ₼
+                    </span>
+                  </div>
+                ))}
+              {f.debts.filter((d) => !d.paid).length === 0 && (
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "10px 0",
+                    color: T.text3,
+                    fontSize: 12,
+                  }}
+                >
+                  Bütün borclar ödənilib ✓
+                </div>
+              )}
+            </>
+          )}
         </Card>
 
         {/* Kateqoriya Bölgüsü */}
@@ -216,6 +244,21 @@ export function OverviewTab({
               }))
               .filter((c) => c.total > 0)
               .sort((a, b) => b.total - a.total);
+            if (cd.length === 0) {
+              return (
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "24px 0",
+                    color: T.text3,
+                    fontSize: 13,
+                  }}
+                >
+                  <div style={{ fontSize: 32, marginBottom: 8 }}>📊</div>
+                  Xərc yoxdur — kateqoriyalar burada görünəcək
+                </div>
+              );
+            }
             const shown = f.showCatAll ? cd : cd.slice(0, 5);
             const hiddenCount = cd.length - 5;
             const hiddenTotal = cd.slice(5).reduce((s, c) => s + c.total, 0);

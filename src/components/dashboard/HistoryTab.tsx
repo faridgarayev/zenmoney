@@ -14,6 +14,7 @@ interface Props {
   historyMonth: number | null;
   setHistoryMonth: (i: number) => void;
   categories: Category[];
+  currentMonthName: string;
 }
 
 export function HistoryTab({
@@ -23,6 +24,7 @@ export function HistoryTab({
   historyMonth,
   setHistoryMonth,
   categories,
+  currentMonthName,
 }: Props) {
   const thStyle: React.CSSProperties = {
     padding: "10px 14px",
@@ -59,7 +61,7 @@ export function HistoryTab({
           >
             {allMonths.map((m, i) => {
               const mx = Math.max(...allMonths.map((x) => x.total), 1);
-              const act = m.month === "Aprel";
+              const act = m.month === currentMonthName;
               return (
                 <div
                   key={i}
@@ -199,7 +201,7 @@ export function HistoryTab({
             </thead>
             <tbody>
               {allMonths.map((m, i) => {
-                const cur = m.month === "Aprel";
+                const cur = m.month === currentMonthName;
                 const rem = m.income - m.total;
                 return (
                   <tr

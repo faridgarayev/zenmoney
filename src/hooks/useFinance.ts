@@ -14,8 +14,8 @@ import { themes } from "../constants/themes";
 import { injectGlobalStyles, typeColorsFor } from "../constants/styles";
 import { USER_INIT } from "../constants/userInit";
 import { DEFAULT_CATEGORIES } from "../constants/categories";
-import { INITIAL_DEBTS, INITIAL_GOALS } from "../constants/initials";
 import { MONTHLY_HISTORY } from "../constants/monthlyHistory";
+import { getCurrentMonthName, getCurrentYear, getCurrentMonthLabel, getMonthKey, getExpenseMonthKey } from "../utils/getMonths";
 
 /* ─── Onboarding result type (must match OnboardingWizard export) ─── */
 export interface OnboardingData {
@@ -54,7 +54,7 @@ export function useFinance() {
   // ─── Core State ───
   const [categories, setCategories] = useState<Category[]>(DEFAULT_CATEGORIES);
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [debts, setDebts] = useState<Debt[]>(INITIAL_DEBTS);
+  const [debts, setDebts] = useState<Debt[]>([]);
   const [extraBudget, setExtraBudget] = useState<ExtraBudget>({
     balance: 0,
     need: 0,
@@ -62,7 +62,7 @@ export function useFinance() {
     future: 0,
   });
   const [impulseItems, setImpulseItems] = useState<ImpulseItem[]>([]);
-  const [goals, setGoals] = useState<FinancialGoal[]>(INITIAL_GOALS);
+  const [goals, setGoals] = useState<FinancialGoal[]>([]);
   const [simPct, setSimPct] = useState(USER_INIT.split.future);
 
   // ─── UI State ───
@@ -126,14 +126,27 @@ export function useFinance() {
     extraBudget.want;
   const futureBudget = totalIncome - needBudget - wantBudget;
 
+  // ─── Current Month (dynamic) ───
+  const currentMonthName = getCurrentMonthName();
+  const currentYear = getCurrentYear();
+  const currentMonthLabel = getCurrentMonthLabel();
+  const currentMonthKey = getMonthKey();
+
+  // ─── Filter: only current month expenses for "spent" ───
+  const currentMonthExpenses = useMemo(() => {
+    return expenses.filter(
+      (e) => getExpenseMonthKey(e.date) === currentMonthKey,
+    );
+  }, [expenses, currentMonthKey]);
+
   const spent = useMemo(() => {
     const s = { need: 0, want: 0, future: 0 };
-    expenses.forEach((e) => {
+    currentMonthExpenses.forEach((e) => {
       const c = categories.find((cc) => cc.id === e.category);
       if (c) s[c.type] += e.amount;
     });
     return s;
-  }, [expenses, categories]);
+  }, [currentMonthExpenses, categories]);
 
   const totalSpent = spent.need + spent.want + spent.future;
   const dailyLeft = Math.max(
@@ -146,25 +159,92 @@ export function useFinance() {
   const totalDebtIn = debts
     .filter((d) => d.type === "borrowed" && !d.paid)
     .reduce((s, d) => s + Number(d.amount), 0);
-  const recurringExpenses = expenses.filter((e) => e.recurring);
+  const recurringExpenses = currentMonthExpenses.filter((e) => e.recurring);
   const recurringTotal = recurringExpenses.reduce((s, e) => s + e.amount, 0);
 
-  // ─── History ───
+  // ─── History: group all expenses by month, merge with MONTHLY_HISTORY ───
   const allMonths: MonthComputed[] = useMemo(() => {
+    // Group non-current-month expenses into archived months
+    const archivedByKey: Record<
+      string,
+      {
+        month: string;
+        year: number;
+        income: number;
+        expenses: { category: string; amount: number }[];
+      }
+    > = {};
+
+    expenses.forEach((e) => {
+      const mk = getExpenseMonthKey(e.date);
+      if (mk === currentMonthKey) return; // current month handled separately
+
+      if (!archivedByKey[mk]) {
+        // Parse month/year from key "YYYY-MM"
+        const [y, m] = mk.split("-").map(Number);
+        const AZ_MONTHS = [
+          "Yanvar",
+          "Fevral",
+          "Mart",
+          "Aprel",
+          "May",
+          "İyun",
+          "İyul",
+          "Avqust",
+          "Sentyabr",
+          "Oktyabr",
+          "Noyabr",
+          "Dekabr",
+        ];
+        archivedByKey[mk] = {
+          month: AZ_MONTHS[m - 1],
+          year: y,
+          income: salary,
+          expenses: [],
+        };
+      }
+
+      const cat = categories.find((c) => c.id === e.category);
+      if (!cat) return;
+
+      const existing = archivedByKey[mk].expenses.find(
+        (ex) => ex.category === e.category,
+      );
+      if (existing) existing.amount += e.amount;
+      else
+        archivedByKey[mk].expenses.push({
+          category: e.category,
+          amount: e.amount,
+        });
+    });
+
+    // Current month from current expenses
     const cur = {
-      month: "Aprel",
-      year: 2026,
+      month: currentMonthName,
+      year: currentYear,
       income: totalIncome,
       expenses: categories
         .map((cat) => {
-          const t = expenses
+          const t = currentMonthExpenses
             .filter((e) => e.category === cat.id)
             .reduce((s, e) => s + e.amount, 0);
           return t > 0 ? { category: cat.id, amount: t } : null;
         })
         .filter(Boolean) as { category: string; amount: number }[],
     };
-    return [...MONTHLY_HISTORY, cur].map((m) => {
+
+    // Merge: MONTHLY_HISTORY (seed) + archived from expenses + current
+    const allRaw = [
+      ...MONTHLY_HISTORY,
+      ...Object.values(archivedByKey).sort((a, b) => {
+        const ka = `${a.year}-${a.month}`,
+          kb = `${b.year}-${b.month}`;
+        return ka.localeCompare(kb);
+      }),
+      cur,
+    ];
+
+    return allRaw.map((m) => {
       const need = m.expenses
         .filter((e) => {
           const c = categories.find((cc) => cc.id === e.category);
@@ -185,7 +265,16 @@ export function useFinance() {
         .reduce((s, e) => s + e.amount, 0);
       return { ...m, need, want, future, total: need + want + future };
     });
-  }, [expenses, categories, totalIncome]);
+  }, [
+    expenses,
+    currentMonthExpenses,
+    categories,
+    totalIncome,
+    salary,
+    currentMonthName,
+    currentYear,
+    currentMonthKey,
+  ]);
 
   // ─── Actions ───
   const triggerCelebration = () => {
@@ -328,6 +417,10 @@ export function useFinance() {
     splitConfig,
     avatarEmoji,
     avatarName,
+    // Current month
+    currentMonthLabel,
+    currentMonthName,
+    currentYear,
     // Data
     categories,
     expenses,
